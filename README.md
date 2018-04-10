@@ -1,12 +1,11 @@
 # Use Cases
 
-This repository presents some of the P4 already tested P4 programs already tested on MACSAD compiler.
+This repository presents the MACSAD project supported dataplane applications written in P4 language.
 
-The Multi-Architecture Compiler System for Abstract Dataplanes (MACSAD) is a P4 compiler that uses ODP aiming to archive portability of dataplane applications without compromising the target performance. MACSAD integrates the ODP APIs with P4, defining a programmable dataplane across multiple targets in a unified compiler system. MACSAD has a designed compiler module that generates an Intermediate Representation (IR) for P4 applications. On our tests, we run MACSAD on Ubuntu 16.04.
+The Multi-Architecture Compiler System for Abstract Dataplanes (MACSAD) is a P4 compiler that uses ODP aiming to achieve portability of dataplane applications across targets without compromising performance. 
 
-This repo contains two folders:
+The P4 programmes are placed in two separate folders according to their P4 version:
 
-p4-14: contains p4 programs and dependency graphs according to the version 14 of the language, this includes:  VxLAN, l2_fwd, l3_fwd using IPv4 and IPv6.
-
-p4-16: contains p4 programs and dependency graphs according to the version 16 of the language, this includes:  BNG, l2_fwd and l3_fwd using IPv4.
+p4-14: contains p4 programs and their dependency graphs. E.g., l2_fwd, l3_fwd (IPv4 and IPv6), VxLAN.
+p4-16: includes p4 programs and their dependency graphs. E.g., l2_fwd, l3_fwd (IPv4), BNG.
 
