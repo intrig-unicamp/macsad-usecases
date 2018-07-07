@@ -17,6 +17,7 @@ struct headers {
 /***********************  M E T A D A T A  *******************************/
 struct routing_metadata_t {
     bit<32> dst_ipv4;
+    bit<32> nhop_ipv4;
     bit<48>  mac_da;
     bit<48>  mac_sa;
     bit<9>   egress_port;
@@ -101,7 +102,7 @@ control ingress(inout headers hdr, inout metadata meta, inout standard_metadata_
     @name(".generate_learn_notify") action generate_learn_notify() {
         digest<mac_learn_digest>(32w1024, {meta.routing_metadata.if_index, hdr.ethernet.srcAddr });
     }
-    @name(".forward") action forward(bit<9> port) {
+    @name(".forward_l2") action forward_l2(bit<9> port) {
         standard_metadata.egress_port = port;
     }
     @name(".smac") table smac {
@@ -113,7 +114,7 @@ control ingress(inout headers hdr, inout metadata meta, inout standard_metadata_
     }
     
     @name(".dmac") table dmac {
-        actions = { forward; }
+        actions = { forward_l2; }
         key = {  hdr.ethernet.dstAddr: exact;    }
         size = 512;
     }
@@ -121,9 +122,11 @@ control ingress(inout headers hdr, inout metadata meta, inout standard_metadata_
     @name(".natTcp_learn") action natTcp_learn() {
         digest<natTcp_learn_digest>((bit<32>)1025, { hdr.ipv4.srcAddr, hdr.tcp.srcPort });
     }
-    @name(".nat_hit_int_to_ext") action nat_hit_int_to_ext(bit<32> srcAddr, bit<16> srcPort) {
+    /*@name(".nat_hit_int_to_ext") action nat_hit_int_to_ext(bit<32> srcAddr, bit<16> srcPort) {*/ 
+    /*precisa adicionar srcPort????*/
+    @name(".nat_hit_int_to_ext") action nat_hit_int_to_ext(bit<32> srcAddr) {
         hdr.ipv4.srcAddr= srcAddr;
-        hdr.tcp.srcPort = srcPort;
+        /*hdr.tcp.srcPort = srcPort;*/
     }
 
     @name(".nat_up") table nat_up {
@@ -134,25 +137,30 @@ control ingress(inout headers hdr, inout metadata meta, inout standard_metadata_
         default_action = natTcp_learn();     
     }
 
-    @name(".nat_hit_ext_to_int") action nat_hit_ext_to_int(bit<32> dstAddr, bit<16> dstPort) {
+    /*@name(".nat_hit_ext_to_int") action nat_hit_ext_to_int(bit<32> dstAddr, bit<16> dstPort) {*/
+    @name(".nat_hit_ext_to_int") action nat_hit_ext_to_int(bit<32> dstAddr) {
         hdr.ipv4.dstAddr = dstAddr;
-        hdr.tcp.dstPort = dstPort;
+        /*hdr.tcp.dstPort = dstPort; */
     }
     @name(".nat_dw") table nat_dw {
         actions = { drop; nat_hit_ext_to_int;  }
+	/*key = { hdr.tcp.dstPort: ternary;} */
 	key = { hdr.tcp.dstPort: exact;}
 	/*key = { hdr.ipv4.dstAddr: exact;}*/
-	/*key = {meta.routing_metadata.is_int_if: exact; } */
         size = 1024;
         default_action = drop();
     }
     
 
     /************** forwarding ipv4 ******************/
-      
+    @name(".set_dmac") action set_dmac(bit<48> dstmac) {
+        hdr.ethernet.dstAddr = dstmac;
+    }      
           
-    @name(".set_nhop") action set_nhop(bit<9> port) {
+    @name(".set_nhop") action set_nhop(bit<9> port, bit<32> nhop_ipv4){
         standard_metadata.egress_port =  port; 
+        standard_metadata.egress_spec = port;
+        meta.routing_metadata.nhop_ipv4 = nhop_ipv4;
     }
     
     @name(".ipv4_lpm") table ipv4_lpm {
@@ -161,7 +169,7 @@ control ingress(inout headers hdr, inout metadata meta, inout standard_metadata_
     }
     
     @name(".rewrite_src_mac") action rewrite_src_mac(bit<48> src_mac) {
-           hdr.ethernet.dstAddr =  meta.routing_metadata.mac_da; 
+           /*hdr.ethernet.dstAddr =  meta.routing_metadata.mac_da; */
            hdr.ethernet.srcAddr =  src_mac;
            hdr.ethernet.etherType = 16w0x800;
     } 
@@ -171,7 +179,23 @@ control ingress(inout headers hdr, inout metadata meta, inout standard_metadata_
         key = {  standard_metadata.egress_port: exact; }
         size = 512;
     }    
- 
+    @name(".ping") table ping {
+        actions = {nat_hit_ext_to_int; }
+        key = {  hdr.ipv4.dstAddr: exact; }
+        size = 512;
+    } 
+    @name(".forward") table forward {
+        actions = {
+            set_dmac;
+            drop;
+        }
+        key = {
+            meta.routing_metadata.nhop_ipv4: exact;
+        }
+        size = 512;
+    }
+
+
     /************** APPLY ******************/
     apply {
         if_info.apply();
@@ -181,12 +205,20 @@ control ingress(inout headers hdr, inout metadata meta, inout standard_metadata_
         }
         else { 
            if(meta.routing_metadata.is_int_if == 1){
-             nat_up.apply();
+                         
+               nat_up.apply();
            }
            else { 
+             if(hdr.ipv4.protocol != 1){
                nat_dw.apply(); 
+             }
+             else { 
+                ping.apply();
+             }
+
            }  
            ipv4_lpm.apply(); 
+           forward.apply();
            sendout.apply();
        } 
     }
@@ -198,7 +230,11 @@ control egress(inout headers hdr, inout metadata meta, inout standard_metadata_t
 }
 
 control DeparserImpl(packet_out packet, in headers hdr) {
-    apply {    }
+    apply { 
+        packet.emit(hdr.ethernet);
+        packet.emit(hdr.ipv4);
+        packet.emit(hdr.tcp);
+   }
 }
 /************   C H E C K S U M    V E  I F I C A T I O N   *************/
 control verifyChecksum(inout headers hdr, inout metadata meta) {
