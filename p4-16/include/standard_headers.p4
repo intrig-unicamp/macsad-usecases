@@ -96,26 +96,6 @@ header sctp_h {
 }
 
 
-header nvgre_t {
-    bit<24> tni;
-    bit<8> reserved;
-}
-
-/*header arp_rarp_h {
-    bit<16> hwType;
-    bit<16> protoType;
-    bit<8> hwAddrLen;
-    bit<8> protoAddrLen;
-    bit<16> opcode;
-}*/
-
-/*header arp_rarp_ipv4_h {
-    bit<48> srcHwAddr;
-    bit<32> srcProtoAddr;
-    bit<48> dstHwAddr;
-    bit<32> dstProtoAddr;
-}*/
-
 header arp_ipv4_t {
     bit<48>  sha;
     bit<32>  spa;
