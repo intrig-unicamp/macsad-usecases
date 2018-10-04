@@ -7,7 +7,8 @@ The Multi-Architecture Compiler System for Abstract Dataplanes (MACSAD) is a P4 
 
 The P4 programmes & their dependency graphs are placed in two separate folders according to their P4 version:
 
-p4-14: contains p4 programs and their dependency graphs. E.g., l2_fwd, l3_fwd (IPv4 and IPv6), VxLAN.
+p4-14: contains p4 programs and their dependency graphs. E.g., l2_fwd, l3_fwd (IPv4 and IPv6), DCG.
+
 p4-16: includes p4 programs and their dependency graphs. E.g., l2_fwd, l3_fwd (IPv4), BNG.
 
 ## Collaborators
