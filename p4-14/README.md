@@ -22,3 +22,4 @@ This folder contains P4 programs using version 14. In this folder we solve the f
   <img src="../images/macsad_dcg.png">
 </p>
 
+- Network address translation (NAT): It remaps one IP address space into another by modifying the IP Headers. It enables the hosts inside a private network to mask their identity behind the NAT router. And it also allows the network administrators to implement security measures to protect the private network.
