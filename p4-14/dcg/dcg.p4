@@ -1,17 +1,3 @@
-/* Copyright 2018 INTRIG/FEEC/UNICAMP (University of Campinas), Brazi      */
-/*                                                                         */
-/*Licensed under the Apache License, Version 2.0 (the "License");          */
-/*you may not use this file except in compliance with the License.         */
-/*You may obtain a copy of the License at                                  */
-/*                                                                         */
-/*    http://www.apache.org/licenses/LICENSE-2.0                           */
-/*                                                                         */
-/*Unless required by applicable law or agreed to in writing, software      */
-/*distributed under the License is distributed on an "AS IS" BASIS,        */
-/*WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. */
-/*See the License for the specific language governing permissions and      */
-/*limitations under the License.                                           */
-
 //----------header----------//
 
 header_type ethernet_t {
@@ -86,11 +72,12 @@ header ipv4_t inner_ipv4;
 #define ETHERTYPE_ARP          0x0806
 
 #define IP_PROTOCOLS_IPHL_UDP  0x511
+#define IP_UDP                 0x11
 #define UDP_PORT_VXLAN         4789
 
-#define BONE 		       1 
-#define BTWO      	       2
-#define BTHREE	               3
+#define BONE                   1
+#define BTWO                   2
+#define BTHREE                 3
 
 #define BIT_WIDTH              16
 
@@ -114,8 +101,8 @@ parser parse_arp{
 
 parser parse_ipv4 {
   extract(ipv4);
-  return select(latest.fragOffset, latest.ihl, latest.protocol) {
-    IP_PROTOCOLS_IPHL_UDP : parse_udp;
+    return select(ipv4.protocol){
+    IP_UDP : parse_udp;
     default: ingress;
   }
 }
@@ -155,21 +142,6 @@ action _drop() {
 action _nop() {
 }
 
-field_list ipv4_checksum_list {
-  ipv4.version;
-  ipv4.ihl;
-  ipv4.diffserv;
-  ipv4.totalLen;
-  ipv4.identification;
-  ipv4.flags;
-  ipv4.fragOffset;
-  ipv4.ttl;
-  ipv4.protocol;
-  ipv4.srcAddr;
-  ipv4.dstAddr;
-}
-
-
 field_list mac_learn_digest {
   ethernet.srcAddr;
   routing_metadata.ingress_port;
@@ -189,14 +161,6 @@ field_list inner_ipv4_checksum_list {
   inner_ipv4.dstAddr;
 }
 
-field_list_calculation inner_ipv4_checksum {
-  input {
-    inner_ipv4_checksum_list;
-  }
-  algorithm : csum16;
-  output_width : 16;
-}
-
 action mac_learn() {
   generate_digest(MAC_LEARN_RECEIVER, mac_learn_digest);
 }
@@ -214,24 +178,24 @@ table MAClearn {
 
 header_type routing_metadata_t {
   fields {
-    outport: 2;
     res: 2;
     aux : 2;
-    egress_port : 2;
     ingress_port : 8;
     lb_hash: 16;
+    mcast_grp : 4;
   }
 }
 
 metadata routing_metadata_t routing_metadata;
 
-action forward(port, nhop, mac) {
+action forward(port, mac) {
   modify_field(standard_metadata.egress_port, port);
   modify_field(ethernet.dstAddr, mac);
   modify_field(routing_metadata.res, BTHREE);
 }
 
 action Tcast() {
+  modify_field(routing_metadata.mcast_grp, 1);
   modify_field(routing_metadata.res, BONE);
 }
 
@@ -245,6 +209,7 @@ table MACfwd {
   }
   actions {
     forward;
+    _nop;
     _drop;
     Tcast;
     Tmac;
@@ -252,19 +217,9 @@ table MACfwd {
   size : 512;
 }
 
-table ownMAC{
-  reads {
-    ethernet.srcAddr : exact;
-  }
-  actions {
-    _nop;
-    forward;
-  }
-}
-
 action arp() {
   generate_digest(ETHERTYPE_ARP, mac_learn_digest);
-  modify_field(routing_metadata.res, BTWO);
+  modify_field(routing_metadata.res, BONE);
 }
 
 table ARPselect {
@@ -278,11 +233,21 @@ table ARPselect {
   size : 2;
 }
 
+field_list load_balancer_fields {
+  ipv4.srcAddr;
+}
 
+field_list_calculation load_hash {
+  input {
+    load_balancer_fields;
+  }
+  algorithm : csum16;
+  output_width : BIT_WIDTH;
+}
 
 action balancer(){
   modify_field(routing_metadata.aux, BONE);
-  modify_field(routing_metadata.lb_hash,1);
+  modify_field_with_hash_based_offset(routing_metadata.lb_hash, 0, load_hash, 2);
 }
 
 action _pop(){
@@ -301,20 +266,23 @@ table LBselector{
     jump;
     _pop;
     balancer;
+    _nop;
   }
   size: 128;
 }
 
-action _pop_vxlan(){
+action _pop_vxlan(mac_dst, mac_src){
+  modify_field(inner_ethernet.dstAddr, mac_dst);
+  modify_field(inner_ethernet.srcAddr, mac_src);
   remove_header(ethernet);
   remove_header(ipv4);
   remove_header(vxlan);
-  modify_field(udp.dstPort, 700);
+  remove_header(udp);
 }
 
 table vpop{
   reads {
-    ipv4.srcAddr : exact;
+    inner_ipv4.dstAddr : exact;
   }
   actions {
     _pop_vxlan;
@@ -323,13 +291,13 @@ table vpop{
 }
 
 action press(vnid, nhop, srcAddr){
+
   add_header(vxlan);
   add_header(udp);
   add_header(inner_ipv4);
   copy_header(inner_ipv4, ipv4);
   add_header(inner_ethernet);
   copy_header(inner_ethernet, ethernet);
-  
   modify_field(ipv4.dstAddr, nhop);
   modify_field(ipv4.srcAddr, srcAddr);
   modify_field(ipv4.protocol, 0x11);
@@ -337,15 +305,15 @@ action press(vnid, nhop, srcAddr){
   modify_field(ipv4.version, 0x4);
   modify_field(ipv4.ihl, 0x5);
   modify_field(ipv4.identification, 0);
-  modify_field(inner_ipv4.totalLen, ipv4.totalLen);
   modify_field(ethernet.etherType, ETHERTYPE_IPV4);
   modify_field(udp.dstPort, UDP_PORT_VXLAN);
   modify_field(udp.checksum, 0);
-  modify_field(udp.length_, ipv4.totalLen + 30);	
+  modify_field(udp.length_, ipv4.totalLen + 30);
   modify_field(vxlan.flags, 0x8);
   modify_field(vxlan.reserved, 0);
   modify_field(vxlan.vni, vnid);
   modify_field(vxlan.reserved2, 0);
+
 }
 
 table LB{
@@ -380,9 +348,18 @@ action nhop(port, dmac){
   modify_field(ipv4.ttl,ipv4.ttl - 1);
 }
 
+table vxlan{
+  reads {
+    vxlan.vni : exact;
+  }
+  actions {
+    _nop;
+  }
+}
+
 table L3{
   reads {
-    inner_ipv4.dstAddr : lpm; 
+    ipv4.dstAddr : lpm;
   }
   actions {
     nhop;
@@ -410,22 +387,21 @@ table sendout {
 control ingress {
   apply(MAClearn);
   apply(MACfwd);
-  if (routing_metadata.res == BONE){
+  if (routing_metadata.res == BTWO){
     apply(ARPselect);
-  }
-  else if (routing_metadata.res == BTWO){
-    apply(ownMAC);
-    apply(LBselector);
-    
-    if (routing_metadata.aux == BONE){
-      apply(LB);
-      apply(LBipv4);
-    }
-   
-    apply(L3);
-    apply(sendout); 
-    if (routing_metadata.aux == BTWO){
-      apply(vpop);
+    if (routing_metadata.res == BTWO){  
+        apply(LBselector);
+
+        if (routing_metadata.aux == BONE){
+          apply(LB);
+          apply(LBipv4);
+        }
+        apply(vxlan);
+        apply(L3);
+        apply(sendout);
+        if (routing_metadata.aux == BTWO){
+          apply(vpop);
+        }
     }
   }
 }
