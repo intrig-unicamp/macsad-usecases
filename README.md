@@ -9,7 +9,7 @@ The P4 programmes & their dependency graphs are placed in two separate folders a
 
 p4-14: contains p4 programs and their dependency graphs. E.g., l2_fwd, l3_fwd (IPv4 and IPv6), NAT, DCG.
 
-p4-16: includes p4 programs and their dependency graphs. E.g., l2_fwd, l3_fwd (IPv4), NAT, BNG.
+p4-16: includes p4 programs and their dependency graphs. E.g., l2_fwd, l3_fwd (IPv4), NAT, BNG and vEPG.
 
 ## Collaborators
 We are members of [INTRIG (Information & Networking Technologies Research & Innovation Group)](http://intrig.dca.fee.unicamp.br) at University of Campinas - Unicamp, SP, Brazil.
