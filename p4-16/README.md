@@ -22,7 +22,7 @@ This folder contains P4 programs using version 16. In this folder we solve the f
   <img src="../images/macsad_bng.png">
 </p>
 
-- vEPG: virtual Evolved Packet Gateway (vEPG) is the user-plane node of LTE core network which merges the function of serving gateway (SGW) and packet gateway (PGW). The current supported functions are VxLAN (de)encapsulation of GTP flows, IP routing towards the Internet and eNodeB nodes, Management of Tunnel Endpoint Identifier (TEID) for flow multiplexing in GTP sessions, stateless firewall and Eth/IP forwarding to/from datacenter gateways. 
+- vEPG/vEPG-TNA: virtual Evolved Packet Gateway (vEPG) is the user-plane node of LTE core network which merges the function of serving gateway (SGW) and packet gateway (PGW). The current supported functions are VxLAN (de)encapsulation of GTP flows, IP routing towards the Internet and eNodeB nodes, Management of Tunnel Endpoint Identifier (TEID) for flow multiplexing in GTP sessions, stateless firewall and Eth/IP forwarding to/from datacenter gateways. 
 
 <p align="center">
   <img src="../images/macsad_vepg.png">
