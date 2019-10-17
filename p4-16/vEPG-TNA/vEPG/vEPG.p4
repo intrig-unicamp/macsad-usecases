@@ -156,20 +156,9 @@ control SwitchIngress(
         meta.meta_inner1_ipv4.totalLen    = hdr.inner1_ipv4.totalLen      ;
         meta.gtp_metadata.teid            = hdr.gtp.teid                  ;
 
-        /* removing header */
+        /* removing header */                       ;
 
-        hdr.inner1_ipv4.setInvalid();
-        hdr.gtp.setInvalid();
-        hdr.inner_udp.setInvalid();
-
-        hdr.inner_ipv4.protocol          = IPPROTO_TCP                           ;
-        hdr.inner_ipv4.srcAddr           = meta.meta_inner1_ipv4.srcAddr         ;
-        hdr.inner_ipv4.dstAddr           = meta.meta_inner1_ipv4.dstAddr         ;
-        hdr.inner_ipv4.totalLen          = meta.meta_inner1_ipv4.totalLen        ;
-
-        hdr.inner_ethernet.srcAddr       = VIRTUAL_EPG_MAC                 	 ;
-        hdr.inner_ethernet.dstAddr 	 = VIRTUAL_DCGW_MAC	                 ;
-        hdr.inner_ethernet.etherType 	 = ETHERTYPE_IPV4                        ;
+         // code is missing to follow the Barefoot SLACA terms & conditions
 
    }
 
@@ -208,13 +197,7 @@ control SwitchIngress(
         hdr.udp.plength                        =  meta.meta_udp.plength  + 36          ;
         hdr.udp.checksum                       =  0                                    ;
 
-        hdr.ipv4.totalLen                      =  meta.meta_ipv4.totalLen + 36         ;
-        hdr.ipv4.srcAddr                       =  GW_IP                                ;
-        hdr.ipv4.dstAddr                       =  dcgw_ip                              ;
-
-        hdr.ethernet.srcAddr                   =  OWN_MAC                              ;
-        hdr.ethernet.dstAddr                   =  dcgw_dmac                            ;
-        hdr.ethernet.etherType                 =  ETHERTYPE_IPV4                       ;
+         // code is missing to follow the Barefoot SLACA terms & conditions
 
         hdr.ipv4.ttl  = hdr.ipv4.ttl - 1;
     }
@@ -236,13 +219,7 @@ control SwitchIngress(
         hdr.udp.plength                        =  meta.meta_udp.plength  - 36          ;
         hdr.udp.checksum                       =  0                                    ;
 
-        hdr.ipv4.totalLen                      =  meta.meta_ipv4.totalLen - 36         ;
-        hdr.ipv4.srcAddr                       =  GW_IP                                ;
-        hdr.ipv4.dstAddr                       =  dcgw_ip                              ;
-
-        hdr.ethernet.srcAddr                   =  OWN_MAC                              ;
-        hdr.ethernet.dstAddr                   =  dcgw_dmac                            ;
-        hdr.ethernet.etherType                 =  ETHERTYPE_IPV4                       ;
+         // code is missing to follow the Barefoot SLACA terms & conditions
 
         hdr.ipv4.ttl  = hdr.ipv4.ttl - 1;
     }
