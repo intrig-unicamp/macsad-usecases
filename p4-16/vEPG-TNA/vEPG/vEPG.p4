@@ -134,7 +134,9 @@ control SwitchIngress(
 
     table firewall_dL {
     key = {
-              hdr.inner_ipv4.srcAddr  : exact @name("ipv4_dst");
+      
+     // code is missing to follow the Barefoot SLACA terms & conditions
+    
     }
 
     actions = { drop; nop; }
@@ -187,7 +189,9 @@ control SwitchIngress(
 
     table firewall_ul {
     key = {
-              hdr.inner1_ipv4.dstAddr : exact  @name("ipv4_dst");
+    
+     // code is missing to follow the Barefoot SLACA terms & conditions
+    
     }
 
     actions = { nop; drop; }
