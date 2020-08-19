@@ -31,7 +31,10 @@ For detail, you can find our paper <a href="https://dl.acm.org/doi/10.1145/33599
 
 ```
 
-Suneet Kumar Singh, Christian Esteve Rothenberg, Gyanesh Patra, and Gergely Pongracz. 2019. Offloading Virtual Evolved Packet Gateway User Plane Functions to a Programmable ASIC. In Proceedings of the 1st ACM CoNEXT Workshop on Emerging in-Network Computing Paradigms (ENCP '19). Association for Computing Machinery, New York, NY, USA, 9–14. DOI:https://doi.org/10.1145/3359993.3366645
+Suneet Kumar Singh, Christian Esteve Rothenberg, Gyanesh Patra, and Gergely Pongracz. 2019. 
+Offloading Virtual Evolved Packet Gateway User Plane Functions to a Programmable ASIC. 
+In Proceedings of the 1st ACM CoNEXT Workshop on Emerging in-Network Computing Paradigms (ENCP '19). 
+Association for Computing Machinery, New York, NY, USA, 9–14. DOI:https://doi.org/10.1145/3359993.3366645
 
 ```
 
