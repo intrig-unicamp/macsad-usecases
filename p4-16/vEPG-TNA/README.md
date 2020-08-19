@@ -29,11 +29,11 @@ To compile, run p4c vEPG_TNA/vEPG_P4_TNA/vEPG_UL/vEPG.p4 for UL and p4c vEPG_TNA
 
 For detail, you can find our paper <a href="https://dl.acm.org/doi/10.1145/3359993.3366645">here</a>, please If you find this implementation or the discussions in our paper useful, please consider citing:
 
-'''
+```
 
 Suneet Kumar Singh, Christian Esteve Rothenberg, Gyanesh Patra, and Gergely Pongracz. 2019. Offloading Virtual Evolved Packet Gateway User Plane Functions to a Programmable ASIC. In Proceedings of the 1st ACM CoNEXT Workshop on Emerging in-Network Computing Paradigms (ENCP '19). Association for Computing Machinery, New York, NY, USA, 9–14. DOI:https://doi.org/10.1145/3359993.3366645
 
-'''
+```
 
 
 
