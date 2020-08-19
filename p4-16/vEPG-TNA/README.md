@@ -3,7 +3,7 @@
 This directory hosts P4 implementation of virtual Evolved Packet Gateway (vEPG) running on the Barefoot Tofino programmable switch.
 User Plane Functions of vEPG Uplink (vEPG-UL) and vEPG Downlink (vEPG-DL) are shown in given figure below:
 
-<img src="Figures/UserPlaneFunctions.png" alt="alt text" width="300" height="270"> 
+<img src="Figures/UserPlaneFunctions.png" alt="alt text" width="600" height="270"> 
 
 ## vEPG Pipeline:
 
